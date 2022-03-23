@@ -72,6 +72,7 @@ func post() {
 	}
 
 	img := getImage(*sourcesFile)
+	log.Printf("Posting image from %s\n", img.URL)
 	resp, err := http.Get(img.URL)
 	if err != nil {
 		log.Fatal(err)
