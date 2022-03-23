@@ -1,4 +1,4 @@
-module codeberg.org/normandy/fedi-picbot
+module github.com/archaeme/fedi-picbot
 
 go 1.18
 
