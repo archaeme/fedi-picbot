@@ -71,8 +71,8 @@ func post() {
 		log.Fatal(err)
 	}
 
-	url, source, sensitive := getUrls(*sourcesFile)
-	resp, err := http.Get(url)
+	img := getImage(*sourcesFile)
+	resp, err := http.Get(img.URL)
 	if err != nil {
 		log.Fatal(err)
 	}
@@ -83,22 +83,23 @@ func post() {
 		log.Fatal(err)
 	}
 
-	isSensitive, err := strconv.ParseBool(sensitive)
-	if err != nil {
-		log.Fatal(err)
-	}
-
 	_, err = client.PostStatus(context.Background(), &mastodon.Toot{
-		Status:    fmt.Sprintf("Source: %s", source),
+		Status:    fmt.Sprintf("Source: %s", img.Source),
 		MediaIDs:  []mastodon.ID{attachment.ID},
-		Sensitive: isSensitive,
+		Sensitive: img.Sensitive,
 	})
 	if err != nil {
 		log.Fatal(err)
 	}
 }
 
-func getUrls(sourcesFile string) (url, source, sensitive string) {
+type Image struct {
+	URL       string
+	Source    string
+	Sensitive bool
+}
+
+func getImage(sourcesFile string) *Image {
 	file, err := os.Open(sourcesFile)
 	if err != nil {
 		log.Fatal(err)
@@ -124,10 +125,17 @@ func getUrls(sourcesFile string) (url, source, sensitive string) {
 	// Line format is <image url> <source url> <sensitive bool>
 	// FIXME: maybe this could be a sqlite db or someting that isn't error prone
 	parts := strings.SplitN(pick, " ", 3)
-	url = parts[0]
-	source = parts[1]
-	sensitive = parts[2]
-	return url, source, sensitive
+	url := parts[0]
+	source := parts[1]
+	sensitive, err := strconv.ParseBool(parts[2])
+	if err != nil {
+		log.Fatal(err)
+	}
+	return &Image{
+		URL:       url,
+		Source:    source,
+		Sensitive: sensitive,
+	}
 }
 
 func main() {
