@@ -31,7 +31,7 @@ func register() {
 		ClientName: "fedi-picbot",
 		// the go-mastodon library hardcodes these scopes when authenticating, so we have to use the same ones
 		Scopes:  "read write follow",
-		Website: "https://codeberg.org/normandy/fedi-picbot",
+		Website: "https://github.com/archaeme/fedi-picbot",
 	})
 	if err != nil {
 		log.Fatal(err)
