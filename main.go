@@ -123,16 +123,16 @@ func getImage(sourcesFile string) *Image {
 		lineNum += 1
 	}
 
-	// Line format is <image url> <source url> <sensitive bool>
+	// Line format is <image url> <sensitive bool> <source>
 	// each separated by tabs
 	// FIXME: maybe this could be a sqlite db or someting that isn't error prone
 	parts := strings.SplitN(pick, "\t", 3)
 	url := parts[0]
-	source := parts[1]
-	sensitive, err := strconv.ParseBool(parts[2])
+	sensitive, err := strconv.ParseBool(parts[1])
 	if err != nil {
 		log.Fatal(err)
 	}
+	source := parts[2]
 	return &Image{
 		URL:       url,
 		Source:    source,

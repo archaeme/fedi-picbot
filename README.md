@@ -21,7 +21,7 @@ Making a post:
 ### sources.txt format
 Each line in sources.txt is as follows:
 ```
-<image-url> <url-to-source> <sensitive-bool>
+<image-url> <sensitive-bool> <url-to-source> 
 ```
 
 Each component is seprated with tabs, so it can be thought of as a TSV file.
