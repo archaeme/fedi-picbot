@@ -3,6 +3,7 @@ package main
 import (
 	"bufio"
 	"context"
+	"errors"
 	"flag"
 	"fmt"
 	"log"
@@ -17,13 +18,13 @@ import (
 	"gopkg.in/ini.v1"
 )
 
-func register() {
+func register() error {
 	registerCmd := flag.NewFlagSet("register", flag.ExitOnError)
 	server := registerCmd.String("server", "", "URL of server to register on")
 
 	registerCmd.Parse(os.Args[2:])
 	if *server == "" {
-		log.Fatalln("Server must be specified")
+		return errors.New("Server must be specified")
 	}
 
 	app, err := mastodon.RegisterApp(context.Background(), &mastodon.AppConfig{
@@ -34,7 +35,7 @@ func register() {
 		Website: "https://github.com/archaeme/fedi-picbot",
 	})
 	if err != nil {
-		log.Fatal(err)
+		return err
 	}
 
 	fmt.Println("Copy these into config.ini:")
@@ -42,9 +43,11 @@ func register() {
 	fmt.Printf("ClientID = %s\n", app.ClientID)
 	fmt.Printf("ClientSecret = %s\n", app.ClientSecret)
 	fmt.Println("Don't forget to fill in your username and password in the config file!")
+
+	return nil
 }
 
-func post() {
+func post() error {
 	postCmd := flag.NewFlagSet("post", flag.ExitOnError)
 	configFile := postCmd.String("config", "config.ini", "Path to config file. Defaults to config.ini in working dir")
 	sourcesFile := postCmd.String("sources", "sources.txt", "Text file that contains files to download and a link to the original source")
@@ -52,7 +55,7 @@ func post() {
 
 	config, err := ini.Load(*configFile)
 	if err != nil {
-		log.Fatal(err)
+		return err
 	}
 
 	username := config.Section("Login").Key("Username").String()
@@ -68,20 +71,24 @@ func post() {
 	})
 	err = client.Authenticate(context.Background(), username, password)
 	if err != nil {
-		log.Fatal(err)
+		return err
 	}
 
-	img := getImage(*sourcesFile)
+	img, err := getImage(*sourcesFile)
+	if err != nil {
+		return err
+	}
+
 	log.Printf("Posting image from %s\n", img.URL)
 	resp, err := http.Get(img.URL)
 	if err != nil {
-		log.Fatal(err)
+		return err
 	}
 	defer resp.Body.Close()
 
 	attachment, err := client.UploadMediaFromReader(context.Background(), resp.Body)
 	if err != nil {
-		log.Fatal(err)
+		return err
 	}
 
 	_, err = client.PostStatus(context.Background(), &mastodon.Toot{
@@ -90,8 +97,10 @@ func post() {
 		Sensitive: img.Sensitive,
 	})
 	if err != nil {
-		log.Fatal(err)
+		return err
 	}
+
+	return nil
 }
 
 type Image struct {
@@ -100,10 +109,10 @@ type Image struct {
 	Sensitive bool
 }
 
-func getImage(sourcesFile string) *Image {
+func getImage(sourcesFile string) (*Image, error) {
 	file, err := os.Open(sourcesFile)
 	if err != nil {
-		log.Fatal(err)
+		return nil, err
 	}
 	defer file.Close()
 
@@ -130,14 +139,14 @@ func getImage(sourcesFile string) *Image {
 	url := parts[0]
 	sensitive, err := strconv.ParseBool(parts[1])
 	if err != nil {
-		log.Fatal(err)
+		return nil, err
 	}
 	source := parts[2]
 	return &Image{
 		URL:       url,
 		Source:    source,
 		Sensitive: sensitive,
-	}
+	}, nil
 }
 
 func main() {
@@ -145,12 +154,17 @@ func main() {
 		log.Fatalln("Must use 'post' or 'register' subcommands")
 	}
 
+	var err error = nil
 	switch os.Args[1] {
 	case "register":
-		register()
+		err = register()
 	case "post":
-		post()
+		err = post()
 	default:
-		log.Fatalln("Must use 'post' or 'register' subcommands")
+		err = errors.New("Must use 'post' or 'register' subcommands")
+	}
+
+	if err != nil {
+		log.Fatal(err)
 	}
 }
