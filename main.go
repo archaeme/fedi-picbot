@@ -6,7 +6,6 @@ import (
 	"errors"
 	"flag"
 	"fmt"
-	"log"
 	"math/rand"
 	"net/http"
 	"os"
@@ -79,7 +78,7 @@ func post() error {
 		return err
 	}
 
-	log.Printf("Posting image from %s\n", img.URL)
+	fmt.Printf("Posting image from %s\n", img.URL)
 	resp, err := http.Get(img.URL)
 	if err != nil {
 		return err
@@ -151,7 +150,8 @@ func getImage(sourcesFile string) (*Image, error) {
 
 func main() {
 	if len(os.Args) < 2 {
-		log.Fatalln("Must use 'post' or 'register' subcommands")
+		fmt.Fprintln(os.Stderr, "Must use 'post' or 'register' subcommands")
+		os.Exit(1)
 	}
 
 	var err error = nil
@@ -165,6 +165,7 @@ func main() {
 	}
 
 	if err != nil {
-		log.Fatalln(err)
+		fmt.Fprintln(os.Stderr, err)
+		os.Exit(1)
 	}
 }
