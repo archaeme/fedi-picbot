@@ -118,6 +118,7 @@ func getImage(sourcesFile string) (*Image, error) {
 	scanner := bufio.NewScanner(file)
 	lineNum := 1
 	var pick string
+	var pickNum int
 	for scanner.Scan() {
 		line := scanner.Text()
 		randomSrc := rand.NewSource(time.Now().UnixNano())
@@ -126,6 +127,7 @@ func getImage(sourcesFile string) (*Image, error) {
 		roll := random.Intn(lineNum)
 		if roll == 0 {
 			pick = line
+			pickNum = lineNum
 		}
 
 		lineNum += 1
@@ -135,6 +137,10 @@ func getImage(sourcesFile string) (*Image, error) {
 	// each separated by tabs
 	// FIXME: maybe this could be a sqlite db or someting that isn't error prone
 	parts := strings.SplitN(pick, "\t", 3)
+	if len(parts) != 3 {
+		return nil, fmt.Errorf("Line %d in sources.txt is not valid", pickNum)
+	}
+
 	url := parts[0]
 	sensitive, err := strconv.ParseBool(parts[1])
 	if err != nil {
