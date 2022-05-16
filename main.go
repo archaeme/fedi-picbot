@@ -85,6 +85,10 @@ func post() error {
 	}
 	defer resp.Body.Close()
 
+	if resp.StatusCode != 200 {
+		return fmt.Errorf("Unable to fetch image, received status %s", resp.Status)
+	}
+
 	attachment, err := client.UploadMediaFromReader(context.Background(), resp.Body)
 	if err != nil {
 		return err
