@@ -6,6 +6,7 @@ import (
 	"errors"
 	"flag"
 	"fmt"
+	"io"
 	"math/rand"
 	"net/http"
 	"os"
@@ -48,11 +49,13 @@ func register() error {
 
 func post() error {
 	postCmd := flag.NewFlagSet("post", flag.ExitOnError)
-	configFile := postCmd.String("config", "config.ini", "Path to config file. Defaults to config.ini in working dir")
-	sourcesFile := postCmd.String("sources", "sources.txt", "Text file that contains files to download and a link to the original source")
+	workingDir := postCmd.String("dir", ".", "Directory of config and sources file (Default: current dir)")
 	postCmd.Parse(os.Args[2:])
 
-	config, err := ini.Load(*configFile)
+	configFile := fmt.Sprintf("%s/%s", *workingDir, "config.ini")
+	sourcesFile := fmt.Sprintf("%s/%s", *workingDir, "sources.txt")
+
+	config, err := ini.Load(configFile)
 	if err != nil {
 		return err
 	}
@@ -73,31 +76,25 @@ func post() error {
 		return err
 	}
 
-	img, err := getImage(*sourcesFile)
+	// TODO: allow this to be configured
+	imagesDir := fmt.Sprintf("%s/%s", *workingDir, "images")
+	img, err := getImage(sourcesFile, imagesDir)
 	if err != nil {
 		return err
 	}
+	defer img.reader.Close()
 
-	fmt.Printf("Posting image from %s\n", img.URL)
-	resp, err := http.Get(img.URL)
-	if err != nil {
-		return err
-	}
-	defer resp.Body.Close()
+	fmt.Printf("Posting image from %s\n", img.url)
 
-	if resp.StatusCode != 200 {
-		return fmt.Errorf("Unable to fetch image, received status %s", resp.Status)
-	}
-
-	attachment, err := client.UploadMediaFromReader(context.Background(), resp.Body)
+	attachment, err := client.UploadMediaFromReader(context.Background(), img.reader)
 	if err != nil {
 		return err
 	}
 
 	_, err = client.PostStatus(context.Background(), &mastodon.Toot{
-		Status:    fmt.Sprintf("Source: %s", img.Source),
+		Status:    fmt.Sprintf("Source: %s", img.source),
 		MediaIDs:  []mastodon.ID{attachment.ID},
-		Sensitive: img.Sensitive,
+		Sensitive: img.sensitive,
 	})
 	if err != nil {
 		return err
@@ -106,13 +103,14 @@ func post() error {
 	return nil
 }
 
-type Image struct {
-	URL       string
-	Source    string
-	Sensitive bool
+type image struct {
+	url       string
+	reader    io.ReadCloser
+	source    string
+	sensitive bool
 }
 
-func getImage(sourcesFile string) (*Image, error) {
+func getImage(sourcesFile string, imagesDir string) (*image, error) {
 	file, err := os.Open(sourcesFile)
 	if err != nil {
 		return nil, err
@@ -139,7 +137,6 @@ func getImage(sourcesFile string) (*Image, error) {
 
 	// Line format is <image url> <sensitive bool> <source>
 	// each separated by tabs
-	// FIXME: maybe this could be a sqlite db or someting that isn't error prone
 	parts := strings.SplitN(pick, "\t", 3)
 	if len(parts) != 3 {
 		return nil, fmt.Errorf("Line %d in sources.txt is not valid", pickNum)
@@ -151,10 +148,34 @@ func getImage(sourcesFile string) (*Image, error) {
 		return nil, err
 	}
 	source := parts[2]
-	return &Image{
-		URL:       url,
-		Source:    source,
-		Sensitive: sensitive,
+
+	var reader io.ReadCloser
+	urlIsHttp := strings.HasPrefix(url, "http://") || strings.HasPrefix(url, "https://")
+	if urlIsHttp {
+		resp, err := http.Get(url)
+		if err != nil {
+			return nil, err
+		}
+
+		if resp.StatusCode != 200 {
+			resp.Body.Close()
+			return nil, fmt.Errorf("Unable to fetch image, received status %s", resp.Status)
+		}
+
+		reader = resp.Body
+	} else {
+		url = fmt.Sprintf("%s/%s", imagesDir, url)
+		reader, err = os.Open(url)
+		if err != nil {
+			return nil, err
+		}
+	}
+
+	return &image{
+		url:       url,
+		reader:    reader,
+		source:    source,
+		sensitive: sensitive,
 	}, nil
 }
 

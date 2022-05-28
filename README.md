@@ -15,7 +15,7 @@ Registering the bot on the instance:
 
 Making a post:
 ```bash
-./fedi-picbot post [-config=path/to/config.ini] [-sources=path/to/sources.txt]
+./fedi-picbot post [-dir=<path to dir with sources.txt and config.ini>]
 ```
 
 ### sources.txt format
@@ -24,8 +24,9 @@ Each line in sources.txt is as follows:
 <image-url> <sensitive-bool> <url-to-source> 
 ```
 
-Each component is seprated with tabs, so it can be thought of as a TSV file.
+Notes:
+- `<image-url>` can be an HTTP(S) url or a local filename
+- Each component is separated by tabs
 
 ## Todo
 - Add duplicate detection
-- Maybe change sources.txt to a sqlite database or similar
