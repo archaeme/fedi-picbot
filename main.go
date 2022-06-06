@@ -10,6 +10,7 @@ import (
 	"math/rand"
 	"net/http"
 	"os"
+	"path/filepath"
 	"strconv"
 	"strings"
 	"time"
@@ -49,11 +50,21 @@ func register() error {
 
 func post() error {
 	postCmd := flag.NewFlagSet("post", flag.ExitOnError)
-	workingDir := postCmd.String("dir", ".", "Directory of config and sources file (Default: current dir)")
+	var workingDir string
+	var configFile string
+	var sourcesFile string
+	postCmd.StringVar(&workingDir, "dir", ".", "Directory of config and sources file (Default: current dir)")
+	postCmd.StringVar(&configFile, "config", "", "Path to config file (Default: $dir/config.ini)")
+	postCmd.StringVar(&sourcesFile, "sources", "", "Path ro sources.txt file (Default: $dir/sources.txt)")
 	postCmd.Parse(os.Args[2:])
 
-	configFile := fmt.Sprintf("%s/%s", *workingDir, "config.ini")
-	sourcesFile := fmt.Sprintf("%s/%s", *workingDir, "sources.txt")
+	if configFile == "" {
+		configFile = filepath.Join(workingDir, "config.ini")
+	}
+
+	if sourcesFile == "" {
+		sourcesFile = filepath.Join(workingDir, "sources.txt")
+	}
 
 	config, err := ini.Load(configFile)
 	if err != nil {
@@ -77,7 +88,7 @@ func post() error {
 	}
 
 	// TODO: allow this to be configured
-	imagesDir := fmt.Sprintf("%s/%s", *workingDir, "images")
+	imagesDir := filepath.Join(workingDir, "images")
 	img, err := getImage(sourcesFile, imagesDir)
 	if err != nil {
 		return err
