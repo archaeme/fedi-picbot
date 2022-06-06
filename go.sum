@@ -26,6 +26,8 @@ github.com/mattn/go-mastodon v0.0.4 h1:+F2RbXbHkiBfx6SXMJEvEwZ0i8pI9nMnZhKkvjxq9
 github.com/mattn/go-mastodon v0.0.4/go.mod h1:ZBkemyyYYhNAN5JJ0H/ZSW8HfPCW45rHFHyWNwSfpTA=
 github.com/mattn/go-mastodon v0.0.5-0.20220503131638-87278bda2ea5 h1:L4HCNdKyaucvi1FnY92IHwGwuWj1pBk56hfk9CC7rYg=
 github.com/mattn/go-mastodon v0.0.5-0.20220503131638-87278bda2ea5/go.mod h1:D8ScK24P+nSB6g5xdsi/m40TIWispU4yyhJw9rGgHx4=
+github.com/mattn/go-mastodon v0.0.5 h1:P0e1/R2v3ho6kM7BUW0noQm8gAqHE0p8Gq1TMapIVAc=
+github.com/mattn/go-mastodon v0.0.5/go.mod h1:cg7RFk2pcUfHZw/IvKe1FUzmlq5KnLFqs7eV2PHplV8=
 github.com/mattn/go-runewidth v0.0.6/go.mod h1:H031xJmbD/WCDINGzjvQ9THkh0rPKHF+m2gUSrubnMI=
 github.com/mattn/go-tty v0.0.0-20190424173100-523744f04859/go.mod h1:XPvLUNfbS4fJH25nqRHfWLMa1ONC8Amw+mIA639KxkE=
 github.com/mattn/go-tty v0.0.3/go.mod h1:ihxohKRERHTVzN+aSVRwACLCeqIoZAWpoICkkvrWyR0=
@@ -63,4 +65,6 @@ golang.org/x/tools v0.0.0-20180917221912-90fa682c2a6e/go.mod h1:n7NCudcB/nEzxVGm
 gopkg.in/check.v1 v0.0.0-20161208181325-20d25e280405/go.mod h1:Co6ibVJAznAaIkqp8huTwlJQCZ016jof/cbN4VW5Yz0=
 gopkg.in/ini.v1 v1.66.4 h1:SsAcf+mM7mRZo2nJNGt8mZCjG8ZRaNGMURJw7BsIST4=
 gopkg.in/ini.v1 v1.66.4/go.mod h1:pNLf8WUiyNEtQjuu5G5vTm06TEv9tsIgeAvK8hOrP4k=
+gopkg.in/ini.v1 v1.66.6 h1:LATuAqN/shcYAOkv3wl2L4rkaKqkcgTBQjOyYDvcPKI=
+gopkg.in/ini.v1 v1.66.6/go.mod h1:pNLf8WUiyNEtQjuu5G5vTm06TEv9tsIgeAvK8hOrP4k=
 gopkg.in/yaml.v2 v2.2.2/go.mod h1:hI93XBmqTisBFMUTm0b8Fm+jr3Dg1NNxqwp+5A1VGuI=
