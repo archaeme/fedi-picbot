@@ -175,7 +175,7 @@ func getImage(sourcesFile string, imagesDir string) (*image, error) {
 
 		reader = resp.Body
 	} else {
-		url = fmt.Sprintf("%s/%s", imagesDir, url)
+		url = filepath.Join(imagesDir, url)
 		reader, err = os.Open(url)
 		if err != nil {
 			return nil, err
