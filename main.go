@@ -53,9 +53,11 @@ func post() error {
 	var workingDir string
 	var configFile string
 	var sourcesFile string
+	var imagesDir string
 	postCmd.StringVar(&workingDir, "dir", ".", "Directory of config and sources file (Default: current dir)")
 	postCmd.StringVar(&configFile, "config", "", "Path to config file (Default: $dir/config.ini)")
 	postCmd.StringVar(&sourcesFile, "sources", "", "Path ro sources.txt file (Default: $dir/sources.txt)")
+	postCmd.StringVar(&imagesDir, "images-dir", "", "Path to folder containing local images (Default: $dir/images)")
 	postCmd.Parse(os.Args[2:])
 
 	if configFile == "" {
@@ -64,6 +66,10 @@ func post() error {
 
 	if sourcesFile == "" {
 		sourcesFile = filepath.Join(workingDir, "sources.txt")
+	}
+
+	if imagesDir == "" {
+		imagesDir = filepath.Join(workingDir, "images")
 	}
 
 	config, err := ini.Load(configFile)
@@ -87,8 +93,6 @@ func post() error {
 		return err
 	}
 
-	// TODO: allow this to be configured
-	imagesDir := filepath.Join(workingDir, "images")
 	img, err := getImage(sourcesFile, imagesDir)
 	if err != nil {
 		return err
