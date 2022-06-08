@@ -25,7 +25,7 @@ func register() error {
 
 	registerCmd.Parse(os.Args[2:])
 	if *server == "" {
-		return errors.New("Server must be specified")
+		return errors.New("server must be specified")
 	}
 
 	app, err := mastodon.RegisterApp(context.Background(), &mastodon.AppConfig{
@@ -72,23 +72,7 @@ func post() error {
 		imagesDir = filepath.Join(workingDir, "images")
 	}
 
-	config, err := ini.Load(configFile)
-	if err != nil {
-		return err
-	}
-
-	username := config.Section("Login").Key("Username").String()
-	password := config.Section("Login").Key("Password").String()
-	server := config.Section("").Key("Server").String()
-	clientID := config.Section("").Key("ClientID").String()
-	clientSecret := config.Section("").Key("ClientSecret").String()
-
-	client := mastodon.NewClient(&mastodon.Config{
-		Server:       server,
-		ClientID:     clientID,
-		ClientSecret: clientSecret,
-	})
-	err = client.Authenticate(context.Background(), username, password)
+	client, err := login(configFile)
 	if err != nil {
 		return err
 	}
@@ -116,6 +100,26 @@ func post() error {
 	}
 
 	return nil
+}
+
+func login(configFile string) (*mastodon.Client, error) {
+	config, err := ini.Load(configFile)
+	if err != nil {
+		return nil, err
+	}
+	username := config.Section("Login").Key("Username").String()
+	password := config.Section("Login").Key("Password").String()
+	server := config.Section("").Key("Server").String()
+	clientID := config.Section("").Key("ClientID").String()
+	clientSecret := config.Section("").Key("ClientSecret").String()
+
+	client := mastodon.NewClient(&mastodon.Config{
+		Server:       server,
+		ClientID:     clientID,
+		ClientSecret: clientSecret,
+	})
+	err = client.Authenticate(context.Background(), username, password)
+	return client, err
 }
 
 type image struct {
@@ -154,7 +158,7 @@ func getImage(sourcesFile string, imagesDir string) (*image, error) {
 	// each separated by tabs
 	parts := strings.SplitN(pick, "\t", 3)
 	if len(parts) != 3 {
-		return nil, fmt.Errorf("Line %d in sources.txt is not valid", pickNum)
+		return nil, fmt.Errorf("line %d in sources.txt is not valid", pickNum)
 	}
 
 	url := parts[0]
@@ -174,7 +178,7 @@ func getImage(sourcesFile string, imagesDir string) (*image, error) {
 
 		if resp.StatusCode != 200 {
 			resp.Body.Close()
-			return nil, fmt.Errorf("Unable to fetch image, received status %s", resp.Status)
+			return nil, fmt.Errorf("snable to fetch image, received status %s", resp.Status)
 		}
 
 		reader = resp.Body
@@ -196,7 +200,7 @@ func getImage(sourcesFile string, imagesDir string) (*image, error) {
 
 func main() {
 	if len(os.Args) < 2 {
-		fmt.Fprintln(os.Stderr, "Must use 'post' or 'register' subcommands")
+		fmt.Fprintln(os.Stderr, "Error: must use 'post' or 'register' subcommands")
 		os.Exit(1)
 	}
 
@@ -207,7 +211,7 @@ func main() {
 	case "post":
 		err = post()
 	default:
-		err = errors.New("Must use 'post' or 'register' subcommands")
+		err = errors.New("must use 'post' or 'register' subcommands")
 	}
 
 	if err != nil {
