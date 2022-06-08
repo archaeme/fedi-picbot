@@ -18,6 +18,8 @@ Making a post:
 ./fedi-picbot post [-dir=<path to dir with sources.txt and config.ini>]
 ```
 
+**Note**: You can also specify the locations of `sources.txt` and `config.ini` separately using the `-sources` and `-config` flags respectively.
+
 ### sources.txt format
 Each line in sources.txt is as follows:
 ```
