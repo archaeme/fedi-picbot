@@ -178,7 +178,7 @@ func getImage(sourcesFile string, imagesDir string) (*image, error) {
 
 		if resp.StatusCode != 200 {
 			resp.Body.Close()
-			return nil, fmt.Errorf("snable to fetch image, received status %s", resp.Status)
+			return nil, fmt.Errorf("unable to fetch image, received status %s", resp.Status)
 		}
 
 		reader = resp.Body
