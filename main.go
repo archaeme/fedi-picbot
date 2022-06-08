@@ -57,7 +57,7 @@ func post() error {
 	postCmd.StringVar(&workingDir, "dir", ".", "Directory of config and sources file (Default: current dir)")
 	postCmd.StringVar(&configFile, "config", "", "Path to config file (Default: $dir/config.ini)")
 	postCmd.StringVar(&sourcesFile, "sources", "", "Path ro sources.txt file (Default: $dir/sources.txt)")
-	postCmd.StringVar(&imagesDir, "images-dir", "", "Path to folder containing local images (Default: $dir/images)")
+	postCmd.StringVar(&imagesDir, "images", "", "Path to folder containing local images (Default: $dir/images)")
 	postCmd.Parse(os.Args[2:])
 
 	if configFile == "" {
