@@ -49,28 +49,7 @@ func register() error {
 }
 
 func post() error {
-	postCmd := flag.NewFlagSet("post", flag.ExitOnError)
-	var workingDir string
-	var configFile string
-	var sourcesFile string
-	var imagesDir string
-	postCmd.StringVar(&workingDir, "dir", ".", "Directory of config and sources file")
-	postCmd.StringVar(&configFile, "config", "", "Path to config file (default: $dir/config.ini)")
-	postCmd.StringVar(&sourcesFile, "sources", "", "Path ro sources.txt file (default: $dir/sources.txt)")
-	postCmd.StringVar(&imagesDir, "images", "", "Path to folder containing local images (default: $dir/images)")
-	postCmd.Parse(os.Args[2:])
-
-	if configFile == "" {
-		configFile = filepath.Join(workingDir, "config.ini")
-	}
-
-	if sourcesFile == "" {
-		sourcesFile = filepath.Join(workingDir, "sources.txt")
-	}
-
-	if imagesDir == "" {
-		imagesDir = filepath.Join(workingDir, "images")
-	}
+	configFile, sourcesFile, imagesDir := parsePostFlags()
 
 	client, err := login(configFile)
 	if err != nil {
@@ -100,6 +79,32 @@ func post() error {
 	}
 
 	return nil
+}
+
+func parsePostFlags() (string, string, string) {
+	postCmd := flag.NewFlagSet("post", flag.ExitOnError)
+	var workingDir string
+	var configFile string
+	var sourcesFile string
+	var imagesDir string
+	postCmd.StringVar(&workingDir, "dir", ".", "Directory of config and sources file")
+	postCmd.StringVar(&configFile, "config", "", "Path to config file (default: $dir/config.ini)")
+	postCmd.StringVar(&sourcesFile, "sources", "", "Path ro sources.txt file (default: $dir/sources.txt)")
+	postCmd.StringVar(&imagesDir, "images", "", "Path to folder containing local images (default: $dir/images)")
+	postCmd.Parse(os.Args[2:])
+
+	if configFile == "" {
+		configFile = filepath.Join(workingDir, "config.ini")
+	}
+
+	if sourcesFile == "" {
+		sourcesFile = filepath.Join(workingDir, "sources.txt")
+	}
+
+	if imagesDir == "" {
+		imagesDir = filepath.Join(workingDir, "images")
+	}
+	return configFile, sourcesFile, imagesDir
 }
 
 func login(configFile string) (*mastodon.Client, error) {
