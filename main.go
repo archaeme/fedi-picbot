@@ -49,14 +49,14 @@ func register() error {
 }
 
 func post() error {
-	configFile, sourcesFile, imagesDir := parsePostFlags()
+	flags := parsePostFlags()
 
-	client, err := login(configFile)
+	client, err := login(flags.configFile)
 	if err != nil {
 		return err
 	}
 
-	img, err := getImage(sourcesFile, imagesDir)
+	img, err := getImage(flags.sourcesFile, flags.imagesDir)
 	if err != nil {
 		return err
 	}
@@ -81,30 +81,34 @@ func post() error {
 	return nil
 }
 
-func parsePostFlags() (string, string, string) {
+type postFlags struct {
+	workingDir  string
+	configFile  string
+	sourcesFile string
+	imagesDir   string
+}
+
+func parsePostFlags() postFlags {
 	postCmd := flag.NewFlagSet("post", flag.ExitOnError)
-	var workingDir string
-	var configFile string
-	var sourcesFile string
-	var imagesDir string
-	postCmd.StringVar(&workingDir, "dir", ".", "Directory of config and sources file")
-	postCmd.StringVar(&configFile, "config", "", "Path to config file (default: $dir/config.ini)")
-	postCmd.StringVar(&sourcesFile, "sources", "", "Path ro sources.txt file (default: $dir/sources.txt)")
-	postCmd.StringVar(&imagesDir, "images", "", "Path to folder containing local images (default: $dir/images)")
+	var flags postFlags
+	postCmd.StringVar(&flags.workingDir, "dir", ".", "Directory of config and sources file")
+	postCmd.StringVar(&flags.configFile, "config", "", "Path to config file (default: $dir/config.ini)")
+	postCmd.StringVar(&flags.sourcesFile, "sources", "", "Path ro sources.txt file (default: $dir/sources.txt)")
+	postCmd.StringVar(&flags.imagesDir, "images", "", "Path to folder containing local images (default: $dir/images)")
 	postCmd.Parse(os.Args[2:])
 
-	if configFile == "" {
-		configFile = filepath.Join(workingDir, "config.ini")
+	if flags.configFile == "" {
+		flags.configFile = filepath.Join(flags.workingDir, "config.ini")
 	}
 
-	if sourcesFile == "" {
-		sourcesFile = filepath.Join(workingDir, "sources.txt")
+	if flags.sourcesFile == "" {
+		flags.sourcesFile = filepath.Join(flags.workingDir, "sources.txt")
 	}
 
-	if imagesDir == "" {
-		imagesDir = filepath.Join(workingDir, "images")
+	if flags.imagesDir == "" {
+		flags.imagesDir = filepath.Join(flags.workingDir, "images")
 	}
-	return configFile, sourcesFile, imagesDir
+	return flags
 }
 
 func login(configFile string) (*mastodon.Client, error) {
@@ -141,23 +145,7 @@ func getImage(sourcesFile string, imagesDir string) (*image, error) {
 	}
 	defer file.Close()
 
-	scanner := bufio.NewScanner(file)
-	lineNum := 1
-	var pick string
-	var pickNum int
-	for scanner.Scan() {
-		line := scanner.Text()
-		randomSrc := rand.NewSource(time.Now().UnixNano())
-		random := rand.New(randomSrc)
-
-		roll := random.Intn(lineNum)
-		if roll == 0 {
-			pick = line
-			pickNum = lineNum
-		}
-
-		lineNum += 1
-	}
+	pick, pickNum := randomLine(file)
 
 	// Line format is <image url> <sensitive bool> <source>
 	// each separated by tabs
@@ -201,6 +189,27 @@ func getImage(sourcesFile string, imagesDir string) (*image, error) {
 		source:    source,
 		sensitive: sensitive,
 	}, nil
+}
+
+func randomLine(file *os.File) (string, int) {
+	scanner := bufio.NewScanner(file)
+	lineNum := 1
+	var pick string
+	var pickNum int
+	for scanner.Scan() {
+		line := scanner.Text()
+		randomSrc := rand.NewSource(time.Now().UnixNano())
+		random := rand.New(randomSrc)
+
+		roll := random.Intn(lineNum)
+		if roll == 0 {
+			pick = line
+			pickNum = lineNum
+		}
+
+		lineNum += 1
+	}
+	return pick, pickNum
 }
 
 func main() {
