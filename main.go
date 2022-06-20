@@ -19,6 +19,7 @@ import (
 	"gopkg.in/ini.v1"
 )
 
+// Registers an instance to a server.
 func register() error {
 	registerCmd := flag.NewFlagSet("register", flag.ExitOnError)
 	server := registerCmd.String("server", "", "URL of server to register on")
@@ -94,6 +95,7 @@ type postFlags struct {
 	imagesDir   string
 }
 
+// Parses command line flags for the `post` command.
 func parsePostFlags() postFlags {
 	postCmd := flag.NewFlagSet("post", flag.ExitOnError)
 	var flags postFlags
@@ -198,6 +200,7 @@ func getImage(sourcesFile string, imagesDir string) (*image, error) {
 	}, nil
 }
 
+// Select a random line from a file.
 func randomLine(file *os.File) (string, int) {
 	scanner := bufio.NewScanner(file)
 	lineNum := 1
