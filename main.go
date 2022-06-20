@@ -48,10 +48,16 @@ func register() error {
 	return nil
 }
 
+// Posts a random image to the configured instance.
 func post() error {
 	flags := parsePostFlags()
 
-	client, err := login(flags.configFile)
+	config, err := ini.Load(flags.configFile)
+	if err != nil {
+		return err
+	}
+
+	client, err := login(config)
 	if err != nil {
 		return err
 	}
@@ -111,11 +117,8 @@ func parsePostFlags() postFlags {
 	return flags
 }
 
-func login(configFile string) (*mastodon.Client, error) {
-	config, err := ini.Load(configFile)
-	if err != nil {
-		return nil, err
-	}
+// Login to a Mastodon server with a given config.
+func login(config *ini.File) (*mastodon.Client, error) {
 	username := config.Section("Login").Key("Username").String()
 	password := config.Section("Login").Key("Password").String()
 	server := config.Section("").Key("Server").String()
@@ -127,8 +130,12 @@ func login(configFile string) (*mastodon.Client, error) {
 		ClientID:     clientID,
 		ClientSecret: clientSecret,
 	})
-	err = client.Authenticate(context.Background(), username, password)
-	return client, err
+	err := client.Authenticate(context.Background(), username, password)
+	if err != nil {
+		return nil, err
+	}
+
+	return client, nil
 }
 
 type image struct {
