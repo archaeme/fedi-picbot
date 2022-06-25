@@ -1,3 +1,5 @@
+Note: Repository has been moved to https://codeberg.org/normandy/fedi-picbot
+
 # fedi-picbot
 
 An image bot for Mastodon and Pleroma.
